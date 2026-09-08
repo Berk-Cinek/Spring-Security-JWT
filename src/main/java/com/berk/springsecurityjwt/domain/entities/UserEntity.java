@@ -44,6 +44,18 @@ public class UserEntity implements UserDetails {
         this.password = password;
     }
 
+    // UserDetailsService looks users up by email, so the UserDetails contract's
+    // identifier must also be the email - otherwise a JWT subject built from
+    // getUsername() can't be re-resolved by JwtAuthenticationFilter later.
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    public String getDisplayUsername() {
+        return username;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
