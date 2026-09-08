@@ -2,6 +2,7 @@ package com.berk.springsecurityjwt.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +15,7 @@ import java.util.List;
 @Table(name = "users")
 @Getter
 @Setter
+@NoArgsConstructor
 public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,13 +38,10 @@ public class UserEntity implements UserDetails {
     @Column(name = "verification_expiration")
     private LocalDateTime verificationCodeExpire;
 
-    public UserEntity(String password, String email, String username) {
-        this.password = password;
-        this.email = email;
+    public UserEntity(String username, String email, String password) {
         this.username = username;
-    }
-
-    public UserEntity(Long id) {
+        this.email = email;
+        this.password = password;
     }
 
     @Override

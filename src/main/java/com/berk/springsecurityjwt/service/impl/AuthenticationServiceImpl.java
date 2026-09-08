@@ -45,19 +45,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return userRepository.save(user);
     }
 
-    public UserEntity authenticate(LoginUserDto loginUserDto){
-        UserEntity user = userRepository.findByEmail(loginUserDto.getEmail())
+    public UserEntity authenticate(LoginUserDto input) {
+        UserEntity user = userRepository.findByEmail(input.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!user.isEnabled()){
-            throw new RuntimeException("Account not verified. Please verify your account");
+        if (!user.isEnabled()) {
+            throw new RuntimeException("Account not verified. Please verify your account.");
         }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginUserDto.getEmail(),
-                        loginUserDto.getPassword()
+                        input.getEmail(),
+                        input.getPassword()
                 )
         );
+
         return user;
     }
 
@@ -65,7 +66,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Optional<UserEntity> optionalUserEntity = userRepository.findByEmail(verifyUserDto.getEmail());
         if (optionalUserEntity.isPresent()){
             UserEntity user = optionalUserEntity.get();
-            if (user.getVerificationCodeExpire().isBefore(LocalDateTime.now())){
+            if (user.isEnabled()){
+                throw new RuntimeException("Account is already verified");
+            }
+            if (user.getVerificationCodeExpire() == null || user.getVerificationCodeExpire().isBefore(LocalDateTime.now())){
                 throw new RuntimeException("Verification code has expired");
             }
             if (user.getVerificationCode().equals(verifyUserDto.getVerificationCode())){
@@ -89,7 +93,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 throw new RuntimeException("Account is already verified");
             }
             user.setVerificationCode(generateVerificationCode());
-            user.setVerificationCodeExpire(LocalDateTime.now().minusHours(1));
+            user.setVerificationCodeExpire(LocalDateTime.now().plusMinutes(25));
             sendVerificationEmail(user);
             userRepository.save(user);
         }else {
